@@ -129,10 +129,23 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         _deliverListener = new BroadcastReceiver(){
             @Override public void onReceive( Context context, Intent intent){
                 if (getResultCode() == Activity.RESULT_OK) {
-                    setStatus( "SMS Delivered, phone is online!" );
+                    Object intent_pdu = intent.getExtras().get("pdu");
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : (byte[])intent_pdu) {
+                        sb.append(String.format("%02X", b));
+                    }
+                    Log.i("PDUSMS::deliverList", "Intent: " + sb.toString());
+                    if(sb.substring(sb.length() - 2).equals("00")){
+                        setStatus("SMS Delivered, phone is online!");
+                    }
+                    else{
+                        setStatus( "Error while delivering... Phone is offline?\nPDU: " + sb.toString() );
+                        Log.i("PDUSMS::deliverList", "Intent: " + sb.substring(sb.length() - 2));
+                    }
                 }
                 else {
-                    setStatus( "Error while delivering: " + getResultCode() );
+                    setStatus( "Error while delivering... Phone is offline?\n" +
+                            "ResultCode: " + getResultCode() );
                 }
             }
         };
